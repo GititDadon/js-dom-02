@@ -36,6 +36,7 @@ form.addEventListener('submit', (event) => {
         }
     }
 
+    error.textContent = '';
     error.hidden = true;
 
     const task = document.createElement('li');
@@ -48,11 +49,13 @@ form.addEventListener('submit', (event) => {
     const val = selectPriority.value;
     task.classList.add(`priority-${val}`);
 
-    const deleteSpan = document.createElement('span');
-    deleteSpan.textContent = 'x';
-    deleteSpan.classList.add('delete');
-    task.appendChild(deleteSpan);
+    // Fixed - Delete must be a button
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.textContent = 'x';
+    deleteButton.classList.add('delete');
 
+    task.appendChild(deleteButton);
     taskList.appendChild(task);
 
     taskInput.value = '';
@@ -65,8 +68,10 @@ form.addEventListener('submit', (event) => {
 
 // Step 2 + 3 - Toggle done / Delete
 taskList.addEventListener('click', (event) => {
-    if (event.target.classList.contains('delete')) {
-        const task = event.target.closest('li');
+    const deleteButton = event.target.closest('.delete');
+
+    if (deleteButton && taskList.contains(deleteButton)) {
+        const task = deleteButton.closest('li');
 
         if (task) {
             task.remove();
@@ -74,7 +79,7 @@ taskList.addEventListener('click', (event) => {
     } else {
         const task = event.target.closest('li');
 
-        if (task) {
+        if (task && taskList.contains(task)) {
             task.classList.toggle('done');
         }
     }
@@ -115,38 +120,24 @@ function updateFilter() {
 
     const allTask = taskList.querySelectorAll('li');
 
-    if (filter === 'active') {
-        allTask.forEach((x) => {
-            if (x.classList.contains('done')) {
-                x.hidden = true;
-            } else {
-                x.hidden = false;
-            }
-        });
-
-    } else if (filter === 'done') {
-        allTask.forEach((x) => {
-            if (x.classList.contains('done')) {
-                x.hidden = false;
-            } else {
-                x.hidden = true;
-            }
-        });
-
-    } else if (filter === 'all') {
-        allTask.forEach((x) => {
-            x.hidden = false;
-        });
-    }
+    allTask.forEach((task) => {
+        if (filter === 'active') {
+            task.hidden = task.classList.contains('done');
+        } else if (filter === 'done') {
+            task.hidden = !task.classList.contains('done');
+        } else {
+            task.hidden = false;
+        }
+    });
 }
 
 // Step 6 - Clear completed
 clear.addEventListener('click', () => {
     const allTask = taskList.querySelectorAll('li');
 
-    allTask.forEach((x) => {
-        if (x.classList.contains('done')) {
-            x.remove();
+    allTask.forEach((task) => {
+        if (task.classList.contains('done')) {
+            task.remove();
         }
     });
 
@@ -158,16 +149,10 @@ clear.addEventListener('click', () => {
 // Step 7 - Empty message
 function ifEmpty() {
     const allTask = taskList.querySelectorAll('li');
-
-    if (allTask.length === 0) {
-        empty.hidden = false;
-    } else {
-        empty.hidden = true;
-    }
+    empty.hidden = allTask.length > 0;
 }
 
 // Initial state
 updateCounter();
 ifEmpty();
 updateFilter();
-ד
